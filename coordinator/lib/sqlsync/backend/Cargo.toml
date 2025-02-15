@@ -1,0 +1,27 @@
+[package]
+name = "sqlsync-cloudflare-backend"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+worker = { version = "0.3.4", features = ["d1"], workspace = true }
+serde = "1.0"
+serde_json = "1.0"
+cookie = "0.18"
+uuid = { version = "1.10.0", features = ["v4"] }
+gloo = { workspace = true, features = ["cloudflare"] }
+futures.workspace = true
+console_error_panic_hook.workspace = true
+sqlsync = { path = "../lib/sqlsync" }
+bincode.workspace = true
+serde-wasm-bindgen.workspace = true
+serde_bytes.workspace = true
+anyhow.workspace = true
+wasm-bindgen.workspace = true
+js-sys.workspace = true
+bs58.workspace = true
+
+web-sys = { workspace = true, features = ["Crypto", "SubtleCrypto"] }

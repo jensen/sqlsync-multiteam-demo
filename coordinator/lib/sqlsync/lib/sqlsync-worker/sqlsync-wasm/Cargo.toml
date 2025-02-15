@@ -1,0 +1,55 @@
+[package]
+name = "sqlsync-wasm"
+description = "SQLSync is a collaborative offline-first wrapper around SQLite. It is designed to synchronize web application state between users, devices, and the edge."
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen.workspace = true
+js-sys.workspace = true
+log = { workspace = true, features = ["std"] }
+anyhow.workspace = true
+bincode.workspace = true
+thiserror.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde-wasm-bindgen.workspace = true
+console_error_panic_hook.workspace = true
+gloo = { workspace = true, features = ["futures", "net"] }
+wasm-bindgen-futures.workspace = true
+futures.workspace = true
+bs58.workspace = true
+tsify = { workspace = true, features = ["js"] }
+serde_bytes.workspace = true
+rand.workspace = true
+event-listener.workspace = true
+sha2.workspace = true
+
+sqlsync = { path = "../../sqlsync" }
+
+[dependencies.web-sys]
+workspace = true
+features = [
+    "console",
+    "EventTarget",
+    "Event",
+    "CustomEvent",
+    "CustomEventInit",
+    "Crypto",
+    "SubtleCrypto",
+]
+
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = false
+
+[package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+debug-js-glue = true
+demangle-name-section = true
+dwarf-debug-info = true

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+
+    /* Compiling */
+    "allowJs": true,
+    "outDir": "dist",
+    "declaration": true,
+    "sourceMap": true,
+    "lib": ["ES6", "DOM", "WebWorker", "ES2021.WeakRef"],
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+}

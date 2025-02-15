@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "ES6",
+      "DOM",
+      "DOM.Iterable",
+      "ES2021.WeakRef"
+    ],
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    /* Bundler mode */
+    "allowJs": true,
+    "outDir": "dist",
+    "declaration": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}

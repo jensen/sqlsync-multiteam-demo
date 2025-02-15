@@ -1,0 +1,128 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply h-full;
+  }
+
+  body {
+    @apply bg-gradient-to-br from-zinc-950 to-zinc-900;
+    @apply text-zinc-50;
+  }
+
+  dialog.modal {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: transform 0.1s ease-out, opacity 0.2s ease-out,
+      display 0.2s allow-discrete, overlay 0.2s allow-discrete;
+    transform-origin: 50% 50%;
+  }
+
+  dialog.modal[open] {
+    opacity: 1;
+    transform: scale(1);
+    transition: transform 0.1s 0.1s ease-in, opacity 0.3s 0.1s ease-in,
+      display 0.3s 0.1s allow-discrete, overlay 0.3s 0.1s allow-discrete;
+    transform-origin: 50% 50%;
+  }
+
+  @starting-style {
+    dialog.modal[open] {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+
+  dialog.modal::backdrop {
+    @apply bg-zinc-950;
+    opacity: 0;
+    transition: opacity 0.4s ease-out, display 0.4s allow-discrete,
+      overlay 0.4s allow-discrete;
+  }
+
+  dialog.modal[open]::backdrop {
+    opacity: 0.6;
+    transition: opacity 0.4s ease-out, display 0.4s allow-discrete,
+      overlay 0.4s allow-discrete;
+  }
+
+  @starting-style {
+    dialog.modal[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  dialog.drawer {
+    transform: translateY(100%) scale(0.8);
+    transition: transform 0.3s ease-in, display 0.2s allow-discrete,
+      overlay 0.2s allow-discrete;
+    transform-origin: bottom center;
+  }
+
+  dialog.drawer[open] {
+    transform: translateY(0) scale(1);
+    transition: transform 0.3s ease-out, display 0.3s allow-discrete,
+      overlay 0.3s allow-discrete;
+    transform-origin: bottom center;
+  }
+
+  @starting-style {
+    dialog.drawer[open] {
+      transform: translateY(100%) scale(0.8);
+    }
+  }
+
+  dialog.drawer::backdrop {
+    @apply bg-zinc-950;
+    opacity: 0;
+    transition: opacity 0.4s ease-out, display 0.4s allow-discrete,
+      overlay 0.4s allow-discrete;
+  }
+
+  dialog.drawer[open]::backdrop {
+    opacity: 0.6;
+    transition: opacity 0.4s ease-out, display 0.4s allow-discrete,
+      overlay 0.4s allow-discrete;
+  }
+
+  @starting-style {
+    dialog.drawer[open]::backdrop {
+      opacity: 0;
+    }
+  }
+}
+
+@layer components {
+  .scroller {
+    --scrollbar-color-thumb: #1a1a1a;
+    --scrollbar-color-track: transparent;
+    --scrollbar-width: thin;
+    --scrollbar-width-legacy: 10px;
+  }
+
+  @supports (scrollbar-width: auto) {
+    .scroller {
+      scrollbar-color: var(--scrollbar-color-thumb) var(--scrollbar-color-track);
+      scrollbar-width: var(--scrollbar-width);
+    }
+  }
+
+  @supports selector(::-webkit-scrollbar) {
+    .scroller::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-color-thumb);
+    }
+    .scroller::-webkit-scrollbar-track {
+      background: var(--scrollbar-color-track);
+    }
+    .scroller::-webkit-scrollbar {
+      max-width: var(--scrollbar-width-legacy);
+      max-height: var(--scrollbar-width-legacy);
+    }
+  }
+}

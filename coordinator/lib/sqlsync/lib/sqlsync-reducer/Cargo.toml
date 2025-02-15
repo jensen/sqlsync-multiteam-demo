@@ -1,0 +1,38 @@
+[package]
+name = "sqlsync-reducer"
+resolver = "2"
+description = "SQLSync is a collaborative offline-first wrapper around SQLite. A SQLSync Reducer is responsible for executing mutations on the database both locally and on the server."
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+bincode.workspace = true
+futures.workspace = true
+log.workspace = true
+thiserror.workspace = true
+
+wasmi = { workspace = true, optional = true }
+
+[features]
+default = ["guest"]
+host = ["wasmi"]
+guest = []
+
+[dev-dependencies]
+wasmi = { workspace = true }
+anyhow = { workspace = true, features = ["backtrace"] }
+simple_logger.workspace = true
+
+[[example]]
+name = "guest"
+crate-type = ["cdylib"]
+
+[[example]]
+name = "host"
+required-features = ["host"]

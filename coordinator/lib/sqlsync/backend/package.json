@@ -1,0 +1,13 @@
+{
+  "name": "sqlsync-cloudflare-backend",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "wrangler-deploy": "wrangler deploy",
+    "wrangler-tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^3.78.10"
+  }
+}
