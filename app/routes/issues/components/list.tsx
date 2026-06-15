@@ -11,6 +11,7 @@ import {
   ListX,
   Box,
   X,
+  Search,
 } from "lucide-react";
 import { PrimaryButton } from "~/components/shared/button";
 import { pluralize } from "~/lib/string";
@@ -44,12 +45,15 @@ function NoIssues(props: NoIssuesProps) {
 
 interface IssueListProps {
   issues: Issue[];
+  search: string;
+  onSearchChange: (value: string) => void;
 }
 
 export default function IssueList(props: IssueListProps) {
   const { teamid } = useParams();
 
   const selectMenuRef = useRef<Dispatch<SetStateAction<boolean>>>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const [checked, setChecked] = useState<{ [key: string]: Issue }>({});
   const [deleteConfirmation, setDeleteConfirmation] = useState<string[]>([]);
@@ -106,8 +110,37 @@ export default function IssueList(props: IssueListProps) {
         ]
       : [];
 
+  const displayedIssues = showRecentlyDeleted ? archivedIssues : activeIssues;
+
   return (
     <div className="h-full flex flex-col">
+      {/* Search bar */}
+      <div className="flex-shrink-0 border-b border-zinc-800 px-4 py-2">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 border border-zinc-700 rounded-md focus-within:border-zinc-500 transition-colors">
+          <Search size={14} className="text-zinc-500 flex-shrink-0" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={props.search}
+            onChange={(e) => props.onSearchChange(e.target.value)}
+            placeholder="Search by title or description…"
+            className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-600 outline-none"
+          />
+          {props.search.length > 0 && (
+            <button
+              onClick={() => {
+                props.onSearchChange("");
+                searchInputRef.current?.focus();
+              }}
+              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+              aria-label="Clear search"
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="flex-shrink-0 h-10 border-b border-zinc-800 flex items-center justify-between">
         <div className="pl-8 relative h-full">
           <div
@@ -150,7 +183,7 @@ export default function IssueList(props: IssueListProps) {
               ]}
             />
           </div>
-          {(showRecentlyDeleted ? archivedIssues : activeIssues).length > 0 && (
+          {displayedIssues.length > 0 && (
             <label
               className={clsx(
                 "z-20 group px-4 h-full flex items-center",
@@ -166,10 +199,7 @@ export default function IssueList(props: IssueListProps) {
                 onChange={(event) => {
                   event.stopPropagation();
                   setChecked(
-                    (showRecentlyDeleted
-                      ? archivedIssues
-                      : activeIssues
-                    ).reduce((issues, issue) => {
+                    displayedIssues.reduce((issues, issue) => {
                       issues[issue.id] = true;
                       return issues;
                     }, {} as { [key: string]: boolean }) ?? {}
@@ -208,13 +238,30 @@ export default function IssueList(props: IssueListProps) {
           )}
         </div>
       </div>
-      {(showRecentlyDeleted ? archivedIssues : activeIssues).length === 0 && (
+      {displayedIssues.length === 0 && (
         <div className="flex-grow flex flex-col justify-center items-center">
-          <NoIssues id={teamid} />
+          {props.search.length > 0 ? (
+            <div className="max-w-64 border border-zinc-800 p-4 rounded space-y-2 flex flex-col items-center">
+              <span className="text-zinc-700">
+                <Search size={48} />
+              </span>
+              <p className="text-sm text-zinc-300 text-center">
+                No issues match &ldquo;{props.search}&rdquo;
+              </p>
+              <button
+                onClick={() => props.onSearchChange("")}
+                className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                Clear search
+              </button>
+            </div>
+          ) : (
+            <NoIssues id={teamid} />
+          )}
         </div>
       )}
       <div className="scroller flex-grow flex flex-col overflow-y-auto pb-4">
-        {(showRecentlyDeleted ? archivedIssues : activeIssues).map((issue) => {
+        {displayedIssues.map((issue) => {
           const availableProjects =
             props.projects?.filter(
               (project) =>

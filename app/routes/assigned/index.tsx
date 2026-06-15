@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { Navigate, Outlet } from "react-router";
 import { sql } from "@orbitinghail/sqlsync-worker";
 import { useQuery } from "~/context/document.context";
@@ -16,21 +17,19 @@ type Issue = {
 export default function AssignedIssuesPage() {
   const { auth } = useAuth();
 
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setDebouncedSearch(search.trim()), 200);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [search]);
+
   const { rows: projects } = useQuery(sql`select id, name from projects`);
 
-  const { rows: issues, state } = useQuery<Issue>(sql`select
-      issues.id,
-      title,
-      users.name as assignee,
-      priority,
-      issues.created_by,
-      status,
-      archived_at,
-      projects.name as project_name
-    from issues
-    left join users on users.id = issues.assigned_to
-    left join projects on projects.id = issues.project_id
-    where issues.assigned_to = ${auth?.id}
+  const orderBy = sql`
     order by
       case
         when status = 'inprogress' then 1
@@ -41,7 +40,40 @@ export default function AssignedIssuesPage() {
         when status = 'canceled' then 6
         else 7
       end, priority desc, issues.created_at desc
-  `);
+  `;
+
+  const { rows: issues, state } = useQuery<Issue>(
+    debouncedSearch
+      ? sql`select
+          issues.id,
+          title,
+          users.name as assignee,
+          priority,
+          issues.created_by,
+          status,
+          archived_at,
+          projects.name as project_name
+        from issues
+        left join users on users.id = issues.assigned_to
+        left join projects on projects.id = issues.project_id
+        where issues.assigned_to = ${auth?.id}
+          and (title like ${"%" + debouncedSearch + "%"} or body like ${"%" + debouncedSearch + "%"})
+        ${orderBy}`
+      : sql`select
+          issues.id,
+          title,
+          users.name as assignee,
+          priority,
+          issues.created_by,
+          status,
+          archived_at,
+          projects.name as project_name
+        from issues
+        left join users on users.id = issues.assigned_to
+        left join projects on projects.id = issues.project_id
+        where issues.assigned_to = ${auth?.id}
+        ${orderBy}`
+  );
 
   if (auth && auth.organizations.length === 0) {
     return <Navigate to="/teams" />;
@@ -51,7 +83,12 @@ export default function AssignedIssuesPage() {
 
   return (
     <div className="flex-grow flex flex-col min-h-0">
-      <IssueList projects={projects} issues={issues} />
+      <IssueList
+        projects={projects}
+        issues={issues}
+        search={search}
+        onSearchChange={setSearch}
+      />
       <Outlet />
     </div>
   );
