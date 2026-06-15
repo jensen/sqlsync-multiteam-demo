@@ -13,19 +13,19 @@ import {
 } from "~/components/shared/button";
 import { StaticModal, useRouteModal } from "~/components/shared/modal";
 import { mutate } from "~/lib/sqlsync";
+import { parseFormData } from "~/lib/form";
 import TeamSelect from "~/components/select/team";
 import { useAuth } from "~/context/auth.context";
-import { TeamIcon } from "~/components/shared/button";
 
 export const clientAction = async ({ request }: ActionFunctionArgs) => {
-  const body = Object.fromEntries(await request.formData()) as {
-    name: string;
-    team: string;
-  };
+  const body = parseFormData<{ name: string; team: string }>(
+    await request.formData(),
+    ["name", "team"]
+  );
 
   const id = crypto.randomUUID();
 
-  if (body.name?.trim() !== "") {
+  if (body.name.trim() !== "") {
     try {
       await mutate(
         { tag: "AddProject", id, ...body, created_by: "" },
