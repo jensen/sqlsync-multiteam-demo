@@ -31,3 +31,7 @@ dist-ssr
 
 .wrangler
 target
+
+# DAG orchestration scratch tests (auto-generated, not committed)
+tests/dag-runs/
+

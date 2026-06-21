@@ -53,7 +53,31 @@ export type Mutation =
     }
   | { tag: "ArchiveIssues"; ids: string[] }
   | { tag: "RestoreIssues"; ids: string[] }
-  | { tag: "MoveIssues"; ids: string[]; project_id: string };
+  | { tag: "MoveIssues"; ids: string[]; project_id: string }
+  | {
+      tag: "AddComment";
+      id: string;
+      issue_id: string;
+      body: string;
+      created_by: string;
+    }
+  | {
+      tag: "UpdateComment";
+      id: string;
+      body: string;
+    }
+  | {
+      tag: "DeleteComment";
+      id: string;
+    }
+  | {
+      tag: "AddActivity";
+      id: string;
+      issue_id: string;
+      actor_id: string;
+      action: string;
+      details: string | null;
+    };
 
 export type User = {
   id: string;
@@ -68,6 +92,23 @@ export type Issue = {
   priority: number;
   status: "backlog" | "todo" | "inprogress" | "done" | "blocked" | "canceled";
   archived_at: string | null;
+};
+
+export type Comment = {
+  id: string;
+  issue_id: string;
+  body: string;
+  created_by: string;
+  created_at: string;
+};
+
+export type Activity = {
+  id: string;
+  issue_id: string;
+  actor_id: string;
+  action: string;
+  details: string | null;
+  created_at: string;
 };
 
 export const MutationDocType: DocType<Mutation> = {
