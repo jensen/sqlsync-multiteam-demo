@@ -35,3 +35,4 @@ target
 # DAG orchestration scratch tests (auto-generated, not committed)
 tests/dag-runs/
 
+.env.local
