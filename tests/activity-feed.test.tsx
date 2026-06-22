@@ -9,10 +9,11 @@ describe("ActivityFeed", () => {
     { id: "u2", name: "Bob" },
   ];
 
-  const today = new Date().toISOString().split("T")[0];
+  // Use local date strings to match formatActivityDateKey's local-time todayKey/yesterdayKey
+  const today = new Date().toLocaleDateString("en-CA");
   const yesterdayDate = new Date();
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterday = yesterdayDate.toISOString().split("T")[0];
+  const yesterday = yesterdayDate.toLocaleDateString("en-CA");
 
   const makeActivities = (): Activity[] => [
     {

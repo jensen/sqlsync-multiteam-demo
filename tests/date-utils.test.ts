@@ -83,14 +83,14 @@ describe("formatActivityDate", () => {
 
 describe("formatActivityDateKey", () => {
   test("returns 'Today' for today's date key", () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString("en-CA");
     expect(formatActivityDateKey(today)).toBe("Today");
   });
 
   test("returns 'Yesterday' for yesterday's date key", () => {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    expect(formatActivityDateKey(yesterday.toISOString().slice(0, 10))).toBe("Yesterday");
+    expect(formatActivityDateKey(yesterday.toLocaleDateString("en-CA"))).toBe("Yesterday");
   });
 
   test("returns formatted date for older date keys", () => {

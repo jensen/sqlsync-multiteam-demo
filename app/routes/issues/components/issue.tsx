@@ -6,7 +6,7 @@ import CommentList from "./comment-list";
 import CommentInput from "./comment-input";
 import ActivityFeed from "./activity-feed";
 import { useQuery, useMutate } from "~/context/document.context";
-import { type Issue, type Comment, type Activity } from "~/doctype";
+import { type Issue, type Comment, type Activity, type Mutation } from "~/doctype";
 import ProjectSelect from "~/components/select/project";
 
 type TabKey = "details" | "comments" | "activity";
@@ -17,13 +17,8 @@ interface IssueProps {
   projects?: { id: string; name: string }[];
   comments?: Comment[];
   activities?: Activity[];
+  mutate?: (mutation: Mutation) => void;
 }
-
-const tabs: { key: TabKey; label: string }[] = [
-  { key: "details", label: "Details" },
-  { key: "comments", label: "Comments" },
-  { key: "activity", label: "Activity" },
-];
 
 export default function Issue(props: IssueProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("details");
@@ -38,7 +33,7 @@ export default function Issue(props: IssueProps) {
     name: string;
   }>(sql`select id, name from projects`);
 
-  const mutate = useMutate() ?? props.issue.mutate;
+  const mutate = useMutate() ?? props.mutate;
 
   // Use props users if provided, otherwise fall back to internal query
   const users = props.users ?? internalUsers;
@@ -49,12 +44,27 @@ export default function Issue(props: IssueProps) {
 
   const handleAddComment = (body: string) => {
     const id = `c-${Date.now()}`;
-    mutate({
+    mutate?.({
       tag: "AddComment",
       id,
       issue_id: props.issue.id,
       body,
       created_by: "u1",
+    });
+  };
+
+  const handleEditComment = (id: string, body: string) => {
+    mutate?.({
+      tag: "UpdateComment",
+      id,
+      body,
+    });
+  };
+
+  const handleDeleteComment = (id: string) => {
+    mutate?.({
+      tag: "DeleteComment",
+      id,
     });
   };
 
@@ -69,21 +79,21 @@ export default function Issue(props: IssueProps) {
               defaultStatus={props.issue.status}
               defaultPriority={String(props.issue.priority)}
               onChangeAssignee={(assignee: string | null) =>
-                mutate({
+                mutate?.({
                   tag: "AssignIssue",
                   id: props.issue.id,
                   to: assignee,
                 })
               }
               onChangeStatus={(status: string | null) =>
-                mutate({
+                mutate?.({
                   tag: "UpdateIssue",
                   id: props.issue.id,
                   status,
                 })
               }
               onChangePriority={(priority: string | null) =>
-                mutate({
+                mutate?.({
                   tag: "UpdateIssue",
                   id: props.issue.id,
                   priority,
@@ -96,7 +106,7 @@ export default function Issue(props: IssueProps) {
           projects={projects}
           defaultValue={props.issue.project_id}
           onChange={(project_id: string) => {
-            mutate({
+            mutate?.({
               tag: "MoveIssues",
               ids: [props.issue.id],
               project_id,
@@ -108,7 +118,7 @@ export default function Issue(props: IssueProps) {
             type="button"
             className="group px-2 py-0.5 text-red-400/50 border border-red-800/50 bg-red-900/30 hover:bg-red-900/50 rounded-md flex items-center justify-between space-x-1"
             onClick={() => {
-              mutate({ tag: "RestoreIssues", ids: [props.issue.id] });
+              mutate?.({ tag: "RestoreIssues", ids: [props.issue.id] });
             }}
           >
             <span className="text-xs select-none">
@@ -135,10 +145,15 @@ export default function Issue(props: IssueProps) {
 
   const renderComments = () => (
     <div className="space-y-4">
-      <CommentList comments={comments} userMap={users?.reduce((acc, u) => {
-        acc[u.id] = u.name;
-        return acc;
-      }, {} as Record<string, string>)} />
+      <CommentList
+        comments={comments}
+        userMap={users?.reduce((acc, u) => {
+          acc[u.id] = u.name;
+          return acc;
+        }, {} as Record<string, string>)}
+        onEditComment={handleEditComment}
+        onDeleteComment={handleDeleteComment}
+      />
       <CommentInput onSubmit={handleAddComment} />
     </div>
   );
@@ -150,7 +165,11 @@ export default function Issue(props: IssueProps) {
   return (
     <div className="px-11 py-6">
       <div className="flex space-x-4 border-b border-zinc-700 mb-6">
-        {tabs.map((tab) => (
+        {[
+          { key: "details" as TabKey, label: "Details" },
+          { key: "comments" as TabKey, label: comments.length > 0 ? `Comments (${comments.length})` : "Comments" },
+          { key: "activity" as TabKey, label: "Activity" },
+        ].map((tab) => (
           <button
             key={tab.key}
             type="button"

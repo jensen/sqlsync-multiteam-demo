@@ -59,7 +59,7 @@ describe("Issue detail page tabs", () => {
     render(<Issue issue={makeIssue()} users={[{ id: "u1", name: "Alice" }]} />);
 
     expect(screen.getByText("Details")).toBeInTheDocument();
-    expect(screen.getByText("Comments")).toBeInTheDocument();
+    expect(screen.getByText(/Comments/i)).toBeInTheDocument();
     expect(screen.getByText("Activity")).toBeInTheDocument();
   });
 
@@ -80,7 +80,7 @@ describe("Issue detail page tabs", () => {
       />
     );
 
-    fireEvent.click(screen.getByText("Comments"));
+    fireEvent.click(screen.getByText(/Comments/i));
 
     expect(screen.getByText("First comment body")).toBeInTheDocument();
     expect(screen.getByRole("textbox")).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe("Issue detail page tabs", () => {
     expect(screen.queryByText("First comment body")).not.toBeInTheDocument();
 
     // Switch to Comments
-    fireEvent.click(screen.getByText("Comments"));
+    fireEvent.click(screen.getByText(/Comments/i));
     expect(screen.getByText("First comment body")).toBeInTheDocument();
     expect(screen.queryByText("Test Issue")).not.toBeInTheDocument();
     expect(screen.queryByText(/status_changed/i)).not.toBeInTheDocument();
@@ -138,5 +138,25 @@ describe("Issue detail page tabs", () => {
 
     const detailsTab = screen.getByText("Details");
     expect(detailsTab).toBeInTheDocument();
+  });
+
+  test("Comments tab shows count when comments exist", () => {
+    const comments = [makeComment(), makeComment({ id: "c2", body: "Second comment" })];
+    render(
+      <Issue
+        issue={makeIssue()}
+        users={[{ id: "u1", name: "Alice" }]}
+        comments={comments}
+      />
+    );
+
+    expect(screen.getByText("Comments (2)")).toBeInTheDocument();
+  });
+
+  test("Comments tab shows plain label when no comments", () => {
+    render(<Issue issue={makeIssue()} users={[{ id: "u1", name: "Alice" }]} />);
+
+    expect(screen.getByText("Comments")).toBeInTheDocument();
+    expect(screen.queryByText(/Comments \(/)).not.toBeInTheDocument();
   });
 });
