@@ -13,12 +13,13 @@ import { useMatch } from "react-router";
 import sqlSyncWasmUrl from "@orbitinghail/sqlsync-worker/sqlsync.wasm?url";
 import workerUrl from "@orbitinghail/sqlsync-worker/worker.js?worker&url";
 
-const COORDINATOR_URL = import.meta.env.VITE_BASE_URL.replace(
+const BASE_URL = import.meta.env.VITE_BASE_URL ?? "http://localhost:8080";
+const COORDINATOR_URL = BASE_URL.replace(
   /^(https?:\/\/)/,
   ""
 );
 const COORDINATOR_URL_WS = `${
-  import.meta.env.VITE_BASE_URL.startsWith("https://") ? "wss" : "ws"
+  BASE_URL.startsWith("https://") ? "wss" : "ws"
 }://${COORDINATOR_URL}`;
 
 export function ConnectedProvider(props: PropsWithChildren) {
