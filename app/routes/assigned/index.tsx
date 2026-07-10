@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router";
 import { sql } from "@orbitinghail/sqlsync-worker";
+import { useState, useEffect } from "react";
 import { useQuery } from "~/context/document.context";
 import IssueList from "../issues/components/list";
 import { useAuth } from "~/context/auth.context";
@@ -16,7 +17,16 @@ type Issue = {
 export default function AssignedIssuesPage() {
   const { auth } = useAuth();
 
-  const { rows: projects } = useQuery(sql`select id, name from projects`);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 200);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { rows: projects } = useQuery<{ id: string; name: string }>(sql`select id, name from projects`);
 
   const { rows: issues, state } = useQuery<Issue>(sql`select
       issues.id,
@@ -31,6 +41,7 @@ export default function AssignedIssuesPage() {
     left join users on users.id = issues.assigned_to
     left join projects on projects.id = issues.project_id
     where issues.assigned_to = ${auth?.id}
+      and (${debouncedSearch} = '' or (title like '%' || ${debouncedSearch} || '%' or body like '%' || ${debouncedSearch} || '%'))
     order by
       case
         when status = 'inprogress' then 1
@@ -51,7 +62,12 @@ export default function AssignedIssuesPage() {
 
   return (
     <div className="flex-grow flex flex-col min-h-0">
-      <IssueList projects={projects} issues={issues} />
+      <IssueList
+        projects={projects}
+        issues={issues}
+        search={search}
+        onSearchChange={setSearch}
+      />
       <Outlet />
     </div>
   );

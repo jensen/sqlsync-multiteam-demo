@@ -1,5 +1,6 @@
 import { sql } from "@orbitinghail/sqlsync-worker";
 import { Outlet, useParams } from "react-router";
+import { useState, useEffect } from "react";
 import { useQuery } from "~/context/document.context";
 import IssuesList from "../../issues/components/list";
 import Breadcrumbs from "~/components/breadcrumbs";
@@ -17,6 +18,15 @@ type Issue = {
 export default function ProjectIssueIndexPage() {
   const { auth } = useAuth();
   const { id, projectid } = useParams();
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 200);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const { rows: projects } = useQuery<{ id: string; name: string }>(
     sql`select id, name from projects`
@@ -36,6 +46,7 @@ export default function ProjectIssueIndexPage() {
     left join users on users.id = issues.assigned_to
     left join projects on projects.id = issues.project_id
     where project_id = ${projectid}
+      and (${debouncedSearch} = '' or (title like '%' || ${debouncedSearch} || '%' or body like '%' || ${debouncedSearch} || '%'))
     `
   );
 
@@ -52,7 +63,12 @@ export default function ProjectIssueIndexPage() {
       <div className="pr-4 border-b border-zinc-800 flex items-center justify-between">
         <Breadcrumbs team={organization} project={project} />
       </div>
-      <IssuesList projects={projects} issues={issues} />
+      <IssuesList
+        projects={projects}
+        issues={issues}
+        search={search}
+        onSearchChange={setSearch}
+      />
       <Outlet />
     </div>
   );
