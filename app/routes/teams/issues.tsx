@@ -1,5 +1,6 @@
 import { sql } from "@orbitinghail/sqlsync-worker";
 import { Outlet, useParams } from "react-router";
+import { useState, useEffect } from "react";
 import { useQuery } from "~/context/document.context";
 import IssuesList from "../issues/components/list";
 
@@ -15,7 +16,16 @@ type Issue = {
 export default function IssueIndexPage() {
   const { filter } = useParams();
 
-  const { rows: projects } = useQuery(sql`select id, name from projects`);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 200);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { rows: projects } = useQuery<{ id: string; name: string }>(sql`select id, name from projects`);
 
   const { rows: issues } = useQuery<Issue>(
     filter === "active"
@@ -32,6 +42,7 @@ export default function IssueIndexPage() {
             left join users on users.id = issues.assigned_to
             left join projects on projects.id = issues.project_id
             where status != 'backlog'
+              and (${debouncedSearch} = '' or (title like '%' || ${debouncedSearch} || '%' or body like '%' || ${debouncedSearch} || '%'))
             order by issues.created_at desc`
       : filter === "backlog"
       ? sql`select
@@ -47,6 +58,7 @@ export default function IssueIndexPage() {
             left join users on users.id = issues.assigned_to
             left join projects on projects.id = issues.project_id
             where status = 'backlog'
+              and (${debouncedSearch} = '' or (title like '%' || ${debouncedSearch} || '%' or body like '%' || ${debouncedSearch} || '%'))
             order by issues.created_at desc`
       : sql`select
               issues.id,
@@ -60,6 +72,7 @@ export default function IssueIndexPage() {
             from issues
             left join users on users.id = issues.assigned_to
             left join projects on projects.id = issues.project_id
+            where ${debouncedSearch} = '' or (title like '%' || ${debouncedSearch} || '%' or body like '%' || ${debouncedSearch} || '%')
             order by issues.created_at desc`
   );
 
@@ -67,7 +80,12 @@ export default function IssueIndexPage() {
 
   return (
     <div className="flex-grow flex flex-col min-h-0">
-      <IssuesList projects={projects} issues={issues} />
+      <IssuesList
+        projects={projects}
+        issues={issues}
+        search={search}
+        onSearchChange={setSearch}
+      />
       <Outlet />
     </div>
   );
