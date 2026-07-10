@@ -1,18 +1,34 @@
+import { useState } from "react";
 import { sql } from "@orbitinghail/sqlsync-worker";
 import { Form } from "react-router";
 import IssueDetails from "./details";
+import CommentList from "./comment-list";
+import CommentInput from "./comment-input";
+import ActivityFeed from "./activity-feed";
 import { useQuery, useMutate } from "~/context/document.context";
-import { type Issue } from "~/doctype";
+import { type Issue, type Comment, type Activity } from "~/doctype";
 import ProjectSelect from "~/components/select/project";
 
+type TabKey = "details" | "comments" | "activity";
+
 interface IssueProps {
-  users: { id: string }[];
-  projects: { id: string; name: string }[];
-  issue: Issue;
+  issue: Issue & { body: string; project_id: string | null };
+  users?: { id: string; name: string }[];
+  projects?: { id: string; name: string }[];
+  comments?: Comment[];
+  activities?: Activity[];
 }
 
+const tabs: { key: TabKey; label: string }[] = [
+  { key: "details", label: "Details" },
+  { key: "comments", label: "Comments" },
+  { key: "activity", label: "Activity" },
+];
+
 export default function Issue(props: IssueProps) {
-  const { rows: users } = useQuery<{
+  const [activeTab, setActiveTab] = useState<TabKey>("details");
+
+  const { rows: internalUsers } = useQuery<{
     id: string;
     name: string;
   }>(sql`select id, name from users`);
@@ -24,8 +40,26 @@ export default function Issue(props: IssueProps) {
 
   const mutate = useMutate() ?? props.issue.mutate;
 
-  return (
-    <Form className="px-11 py-6 space-y-6">
+  // Use props users if provided, otherwise fall back to internal query
+  const users = props.users ?? internalUsers;
+
+  // Use props comments/activities if provided, otherwise empty arrays
+  const comments = props.comments ?? [];
+  const activities = props.activities ?? [];
+
+  const handleAddComment = (body: string) => {
+    const id = `c-${Date.now()}`;
+    mutate({
+      tag: "AddComment",
+      id,
+      issue_id: props.issue.id,
+      body,
+      created_by: "u1",
+    });
+  };
+
+  const renderDetails = () => (
+    <Form className="space-y-6">
       <div className="flex justify-between">
         <div className="flex space-x-2">
           {users && (
@@ -97,5 +131,45 @@ export default function Issue(props: IssueProps) {
         <p className="text-zinc-300">{props.issue.body}</p>
       </div>
     </Form>
+  );
+
+  const renderComments = () => (
+    <div className="space-y-4">
+      <CommentList comments={comments} userMap={users?.reduce((acc, u) => {
+        acc[u.id] = u.name;
+        return acc;
+      }, {} as Record<string, string>)} />
+      <CommentInput onSubmit={handleAddComment} />
+    </div>
+  );
+
+  const renderActivity = () => (
+    <ActivityFeed activities={activities} users={users ?? []} />
+  );
+
+  return (
+    <div className="px-11 py-6">
+      <div className="flex space-x-4 border-b border-zinc-700 mb-6">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            className={`pb-2 px-1 text-sm font-medium transition-colors ${
+              activeTab === tab.key
+                ? "text-zinc-100 border-b-2 border-zinc-100"
+                : "text-zinc-500 hover:text-zinc-300"
+            }`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div>
+        {activeTab === "details" && renderDetails()}
+        {activeTab === "comments" && renderComments()}
+        {activeTab === "activity" && renderActivity()}
+      </div>
+    </div>
   );
 }

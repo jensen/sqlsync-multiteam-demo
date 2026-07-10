@@ -11,6 +11,9 @@ lto = true
 strip = "debuginfo"
 codegen-units = 1
 
+[features]
+t2-tests = []
+
 [dependencies]
 sqlsync-reducer = "0.3.2"
 serde = { version = "1.0", features = ["derive"] }
