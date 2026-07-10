@@ -1,4 +1,4 @@
-import { useState, useRef, type SetStateAction, type Dispatch } from "react";
+import { useState, useRef, useEffect, type SetStateAction, type Dispatch } from "react";
 import { Link, useParams } from "react-router";
 import {
   Boxes,
@@ -44,6 +44,11 @@ function NoIssues(props: NoIssuesProps) {
 
 interface IssueListProps {
   issues: Issue[];
+  selected?: string[];
+  setSelected?: React.Dispatch<React.SetStateAction<string[]>>;
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  projects?: Array<{ id: string; name: string }>;
 }
 
 export default function IssueList(props: IssueListProps) {
@@ -54,6 +59,20 @@ export default function IssueList(props: IssueListProps) {
   const [checked, setChecked] = useState<{ [key: string]: Issue }>({});
   const [deleteConfirmation, setDeleteConfirmation] = useState<string[]>([]);
   const [showRecentlyDeleted, setShowRecentlyDeleted] = useState(false);
+  const [localSearch, setLocalSearch] = useState(props.search ?? "");
+
+  // Debounced search handler
+  useEffect(() => {
+    if (!props.onSearchChange) return;
+    const timer = setTimeout(() => {
+      props.onSearchChange!(localSearch);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [localSearch, props.onSearchChange]);
+
+  const handleClearSearch = () => {
+    setLocalSearch("");
+  };
 
   const mutate = useMutate();
 
@@ -109,6 +128,29 @@ export default function IssueList(props: IssueListProps) {
   return (
     <div className="h-full flex flex-col">
       <div className="flex-shrink-0 h-10 border-b border-zinc-800 flex items-center justify-between">
+        {/* Search input section */}
+        {props.onSearchChange && (
+          <div className="flex-grow px-4 flex items-center">
+            <div className="relative flex-grow max-w-md">
+              <input
+                type="text"
+                placeholder="Search issues..."
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                className="w-full px-3 py-1.5 text-sm bg-zinc-900 border border-zinc-700 rounded focus:outline-none focus:border-zinc-500 text-zinc-100 placeholder-zinc-500"
+              />
+              {localSearch && (
+                <button
+                  onClick={handleClearSearch}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         <div className="pl-8 relative h-full">
           <div
             className={clsx(
